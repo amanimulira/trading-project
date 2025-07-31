@@ -3,6 +3,8 @@ import yfinance as yf
 from fredapi import Fred
 import pandas as pd
 import matplotlib.pyplot as plt
+from helper_functions.trend_identification import identify_trends
+from helper_functions.company_evaluation import evaluate_companies
 
 # Initialize FRED with API key (using enviroment variable)
 
@@ -19,8 +21,12 @@ Data Ingestion Funcitons
 
 def fetch_sp500_data(start_date, end_date):
 	# S&P 500 historical data.
-	sp500 = yf.Ticker("^GSPC")
-	return sp500.history(start=start_date, end=end_date)
+	try:
+		sp500 = yf.Ticker("^GSPC")
+		return sp500.history(start=start_date, end=end_date)
+	except Exception as e:
+		print(f"Error fetching S&P 500 data: {e}")
+		return None
 
 def fetch_economic_indicators(start_date, end_date):
 	# Economic indicators from FRED
@@ -77,8 +83,20 @@ def main():
 	companies = ['APPL', 'JNJ', 'JPM']
 	company_metrics = {ticker: fetch_company_metrics(ticker) for ticker in companies}
 
+	evaluations = evaluate_companies(company_metrics)
+	for ticker, eval in evaluations.items():
+		print(f"{ticker}: {', '.join(eval)}")
+
 	# Process data
 	sp500_data = calculate_moving_averages(sp500_data)
+
+	# Identifing trends
+	bullish, bearish = identify_trends(sp500_data)
+	print("Bullish Crossovers:", bullish)
+	print("Bearish Crossovers:", bearish)
+
+	plot_sp500_with_mas(sp500_data)
+	plot_economic_indicators(economic_data)
 
 	# Store data
 	save_to_csv(sp500_data, 'sp500_data.csv')
