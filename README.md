@@ -3,7 +3,7 @@
 
 ## Analyzing S&P 500 Index to provide deep dive into braoder market trends.
 
-# MARKET ANALYSIS REPORT: OVERVIEW
+# Market Analysis Report: Overview
 
 1. Gathering Relevant Data and Conducting Market Research
 
