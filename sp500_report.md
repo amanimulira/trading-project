@@ -4,12 +4,12 @@
 This report analyzes the S&P 500 to identify trends, evaluate companies, and propose a trading strategy.
 
 ## Market Trends
-- Bullish Crossovers: 7 detected
-- Bearish Crossovers: 2673 detected
+- Bullish Crossovers: 11 detected
+- Bearish Crossovers: 11 detected
 
 ## Economic Indicators
-- Latest Fed Funds Rate: 5.33%
-- Latest CPI: 308.74
+- Latest Fed Funds Rate: 4.48%
+- Latest CPI: 317.60
 
 ## Company Evaluation
 - AAPL: Healthy profit margin, Strong revenue growth

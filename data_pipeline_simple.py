@@ -5,12 +5,11 @@ from helper_functions.economic_correlation import analyze_economic_impact
 import yfinance as yf
 from fredapi import Fred
 import pandas as pd
-import matplotlib.pyplot as plt
 from helper_functions.trend_identification import identify_trends
 from helper_functions.company_evaluation import evaluate_companies
 from data_visualisation_functions.plot_economic_indicators import plot_economic_indicators
 from data_visualisation_functions.plot_sp500 import plot_sp500_with_mas
-from trading_strategy.trading_strategy import MeanReversionStrategy 
+from trading_strategy.trading_strategy import MeanReversionStrategy, MomentumStrategy 
 from risk_management.risk_management import apply_risk_management
 
 # Initialize FRED with API key (using enviroment variable)
@@ -80,8 +79,8 @@ Main Pipeline Execution
 """
 
 def main():
-	start_date = '2010-01-01'
-	end_date = '2023-12-31'
+	start_date = '2000-01-01'
+	end_date = '2024-12-31'
 
 	# Get data
 	sp500_data = fetch_sp500_data(start_date, end_date)
@@ -104,6 +103,21 @@ def main():
 	# Generating signals
 	meanReversion = MeanReversionStrategy()
 	sp500_data = meanReversion.generate_signals(data=sp500_data)
+
+	print("Trading Signals Sample:")
+	print(sp500_data[['Close', 'MA_50', 'MA_200', 'Signal']].tail())
+
+	# Risk Management
+	sp500_data = apply_risk_management(sp500_data)
+	print("Risk Management Sample:")
+	print(sp500_data[['Close', 'Signal', 'Stop_Loss', 'Position_Size']].tail())
+
+	cumulative_return = backtest_strategy(sp500_data)
+	print(f"Strategy Cumulative Return: {cumulative_return:.2%}")
+
+	momentum = MomentumStrategy()
+	sp500_data = momentum.generate_signals(data=sp500_data)
+
 	print("Trading Signals Sample:")
 	print(sp500_data[['Close', 'MA_50', 'MA_200', 'Signal']].tail())
 
@@ -123,8 +137,8 @@ def main():
 	print(correlations['Close'])
 
 	# Data Visulaisation
-	plot_sp500_with_mas(sp500_data)
-	plot_economic_indicators(economic_data)
+	# plot_sp500_with_mas(sp500_data)
+	# plot_economic_indicators(economic_data)
 
 	# Store data
 	save_to_csv(sp500_data, 'sp500_data.csv')

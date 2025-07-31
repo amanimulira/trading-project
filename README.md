@@ -9,8 +9,6 @@
 
 2. Evaluating Financial Reports and Indicators
 
-3. Identifing Trends, Opportunities, and Risks
+3. Identifying Trends, Opportunities, and Risks
 
 4. Developing Simple Trading Strategy
-
-
