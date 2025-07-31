@@ -19,4 +19,4 @@ def evaluate_companies(company_metrics):
         if rg and rg > 0.05:
             evaluation.append("Strong revenue growth")
         evaluations[ticker] = evaluation
-    return evaluation
+    return evaluations

@@ -1,10 +1,17 @@
 import os
+from backtest_strategy_function import backtest_strategy
+from generate_report import generate_report
+from helper_functions.economic_correlation import analyze_economic_impact
 import yfinance as yf
 from fredapi import Fred
 import pandas as pd
 import matplotlib.pyplot as plt
 from helper_functions.trend_identification import identify_trends
 from helper_functions.company_evaluation import evaluate_companies
+from data_visualisation_functions.plot_economic_indicators import plot_economic_indicators
+from data_visualisation_functions.plot_sp500 import plot_sp500_with_mas
+from trading_strategy.trading_strategy import MeanReversionStrategy 
+from risk_management.risk_management import apply_risk_management
 
 # Initialize FRED with API key (using enviroment variable)
 
@@ -66,7 +73,6 @@ def save_to_csv(data, filename):
 	# Save data to CSV
 	data.to_csv(filename)
 
-
 """
 
 Main Pipeline Execution
@@ -74,18 +80,18 @@ Main Pipeline Execution
 """
 
 def main():
-	start_date = '2019-01-01'
-	end_date = '2023-12-32'
+	start_date = '2010-01-01'
+	end_date = '2023-12-31'
 
 	# Get data
 	sp500_data = fetch_sp500_data(start_date, end_date)
 	economic_data = fetch_economic_indicators(start_date, end_date)
-	companies = ['APPL', 'JNJ', 'JPM']
+	companies = ['AAPL', 'JNJ', 'JPM']
 	company_metrics = {ticker: fetch_company_metrics(ticker) for ticker in companies}
 
-	evaluations = evaluate_companies(company_metrics)
-	for ticker, eval in evaluations.items():
-		print(f"{ticker}: {', '.join(eval)}")
+	# evaluations = evaluate_companies(company_metrics)
+	# for ticker, eval in evaluations.i():
+	# 	print(f"{ticker}: {', '.join(eval)}")
 
 	# Process data
 	sp500_data = calculate_moving_averages(sp500_data)
@@ -95,6 +101,28 @@ def main():
 	print("Bullish Crossovers:", bullish)
 	print("Bearish Crossovers:", bearish)
 
+	# Generating signals
+	meanReversion = MeanReversionStrategy()
+	sp500_data = meanReversion.generate_signals(data=sp500_data)
+	print("Trading Signals Sample:")
+	print(sp500_data[['Close', 'MA_50', 'MA_200', 'Signal']].tail())
+
+	# Risk Management
+	sp500_data = apply_risk_management(sp500_data)
+	print("Risk Management Sample:")
+	print(sp500_data[['Close', 'Signal', 'Stop_Loss', 'Position_Size']].tail())
+
+	cumulative_return = backtest_strategy(sp500_data)
+	print(f"Strategy Cumulative Return: {cumulative_return:.2%}")
+	
+	evaluations = evaluate_companies(company_metrics)
+	generate_report(sp500_data, economic_data, evaluations)
+
+	correlations = analyze_economic_impact(sp500_data, economic_data)
+	print("Correlations with S&P 500 Close:")
+	print(correlations['Close'])
+
+	# Data Visulaisation
 	plot_sp500_with_mas(sp500_data)
 	plot_economic_indicators(economic_data)
 
