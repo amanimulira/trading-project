@@ -38,7 +38,6 @@ This project analyzes historical S&P 500 stock data to uncover market trends, id
 ## Key Achievements
 
 - Successfully analyzed ~500 stocks to identify variance drivers, supporting portfolio risk analysis.
-- Achieved an 83% project score through rigorous analysis and clear communication of findings.
 - Demonstrated proficiency in econometric modeling and data manipulation, applicable to equities, fixed income, and other asset classes.
 
 ## How to Run the Project
