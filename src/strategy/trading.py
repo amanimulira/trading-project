@@ -3,9 +3,10 @@ import pandas as pd
 import numpy as np
 from typing import Tuple, Optional
 import logging
+import yfinance as yf
 
 from ..data.fetch import fetch_stock_data
-from ..data.preprocess import clean_data, calculate_daily_returns
+from ..data.preprocess import clean_data, calculate_daily_returns, clean_index_data
 from ..analysis.pca import PCA  # For type hinting, assuming PCA from sklearn
 
 logger = logging.getLogger(__name__)
@@ -65,7 +66,7 @@ def compute_basket_returns(returns: pd.DataFrame, weights: pd.Series) -> pd.Seri
 
 def fetch_index_returns(start_date: str, end_date: str, index_ticker: str = '^GSPC') -> pd.Series:
     """
-    Fetch and compute daily returns for the market index (e.g., S&P 500).
+    Fetch historical index data and calculate daily returns for the specified index.
     
     Args:
         start_date (str): Start date in 'YYYY-MM-DD' format.
@@ -73,17 +74,26 @@ def fetch_index_returns(start_date: str, end_date: str, index_ticker: str = '^GS
         index_ticker (str, optional): Ticker for the index (e.g., '^GSPC' for S&P 500). Defaults to '^GSPC'.
     
     Returns:
-        pd.Series: Daily returns of the index.
+        pd.Series: Daily returns for the index.
     
     Raises:
         Exception: If data fetching or processing fails.
     """
     try:
-        index_data = fetch_stock_data([index_ticker], start_date, end_date)
-        cleaned = clean_data(index_data)
-        index_returns = calculate_daily_returns(cleaned)[index_ticker]
-        logger.info(f"Index returns fetched for {index_ticker}.")
-        return index_returns
+        index_data = yf.download(index_ticker, start=start_date, end=end_date, auto_adjust=True)
+        logger.info(f"Stock data fetched successfully for {index_ticker}.")
+        
+        # Clean index data
+        cleaned = clean_index_data(index_data, price_col='Close')
+        
+        # Calculate daily returns
+        returns = calculate_daily_returns(cleaned, price_col=None)
+        
+        # Convert to Series (single ticker)
+        returns = returns.squeeze()
+        
+        logger.info(f"Index returns calculated: {len(returns)} days for {index_ticker}.")
+        return returns
     except Exception as e:
         logger.error(f"Error fetching index returns: {e}")
         raise

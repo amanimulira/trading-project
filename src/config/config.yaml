@@ -1,0 +1,28 @@
+# src/config/config.yaml
+data:
+  start_date: "2014-01-01"
+  end_date: "2017-12-31"
+  source: "yfinance"
+  price_col: "Close"  # Changed from "Adj Close" to match yfinance output
+  fill_method: "ffill"
+  dropna: true
+
+pca:
+  variance_threshold: 0.95
+
+strategy:
+  window: 20
+  entry_z: 2.0
+  exit_z: 0.5
+  transaction_cost: 0.001
+  risk_free_rate: 0.0
+  index_ticker: "^GSPC"
+
+risk:
+  confidence_level: 0.95
+  time_horizon: 1
+  top_n: 5
+
+outputs:
+  plot_dir: "outputs/plots"
+  results_dir: "outputs"

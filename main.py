@@ -1,21 +1,19 @@
+# main.py
 import argparse
-import logging 
+import logging
 import yaml
 import pandas as pd
 
-from src.data import *
-from src.analysis import *
-from src.strategy import *
+from src.data import get_sp500_tickers, fetch_stock_data, clean_data, calculate_daily_returns
+from src.analysis import apply_pca, get_principal_components, calculate_portfolio_variance, analyze_pca_risk_factors, calculate_value_at_risk
+from src.strategy import create_pca_basket_weights, compute_basket_returns, fetch_index_returns, compute_spread, generate_mean_reversion_signals, backtest_strategy
 
-# setup logging 
-
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+# Setup logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 def load_config(config_path: str) -> dict:
-    """Load Configuration from YAML file."""
+    """Load configuration from YAML file."""
     try:
         with open(config_path, 'r') as file:
             config = yaml.safe_load(file)
@@ -43,8 +41,18 @@ def main():
         start_date=config['data']['start_date'],
         end_date=config['data']['end_date']
     )
-    cleaned_data = clean_data(data, fill_method='ffill', dropna=True)
-    returns = calculate_daily_returns(cleaned_data, price_col='Adj Close')
+    cleaned_data = clean_data(
+        data,
+        fill_method=config['data']['fill_method'],
+        dropna=config['data']['dropna'],
+        price_col=config['data']['price_col']
+    )
+    returns = calculate_daily_returns(cleaned_data, price_col=None)
+    
+    # Check if returns DataFrame is valid
+    if returns.empty or returns.shape[0] < 1:
+        raise ValueError(f"Returns DataFrame is empty or invalid: {returns.shape}")
+    
     logger.info(f"Data preprocessed: {returns.shape[0]} days, {returns.shape[1]} stocks.")
 
     # Step 2: Econometric Analysis (PCA and Risk)
@@ -57,12 +65,19 @@ def main():
 
     portfolio_vol = calculate_portfolio_variance(returns)
     top_contributors, cumulative_variance = analyze_pca_risk_factors(
-        pca, components_df, explained_variance, top_n=5
+        pca=pca,
+        components_df=components_df,
+        explained_variance=explained_variance,
+        top_n=config['risk']['top_n']
     )
-    var_95 = calculate_value_at_risk(returns, confidence_level=0.95)
+    var_95 = calculate_value_at_risk(
+        returns, 
+        confidence_level=config['risk']['confidence_level'],
+        time_horizon=config['risk']['time_horizon']
+    )
 
     logger.info(f"Portfolio Annualized Volatility: {portfolio_vol:.4f}")
-    logger.info(f"95% 1-Day VaR: {var_95:.4f}")
+    logger.info(f"{config['risk']['confidence_level']*100}% {config['risk']['time_horizon']}-Day VaR: {var_95:.4f}")
     logger.info("Top PCA Risk Factors:\n" + top_contributors.to_string())
     logger.info("Cumulative Variance Explained:\n" + cumulative_variance.to_string())
 
@@ -74,30 +89,31 @@ def main():
     index_returns = fetch_index_returns(
         start_date=config['data']['start_date'],
         end_date=config['data']['end_date'],
-        index_ticker='^GSPC'
+        index_ticker=config['strategy']['index_ticker']
     )
 
     spread = compute_spread(basket_returns, index_returns)
     signals = generate_mean_reversion_signals(
         spread,
-        window=20,
-        entry_z=2.0,
-        exit_z=0.5
+        window=config['strategy']['window'],
+        entry_z=config['strategy']['entry_z'],
+        exit_z=config['strategy']['exit_z']
     )
     cumulative_returns, sharpe, max_drawdown = backtest_strategy(
         spread,
         signals,
-        transaction_cost=0.001,
-        risk_free_rate=0.0
+        transaction_cost=config['strategy']['transaction_cost'],
+        risk_free_rate=config['strategy']['risk_free_rate']
     )
 
     logger.info(f"Strategy Backtest Results: Sharpe Ratio = {sharpe:.2f}, Max Drawdown = {max_drawdown:.2%}")
     logger.info("Cumulative Returns (last 5):\n" + cumulative_returns.tail().to_string())
 
-    # Optional: Save results to CSV
-    cumulative_returns.to_csv('outputs/strategy_cumulative_returns.csv')
-    top_contributors.to_csv('outputs/top_pca_contributors.csv')
-    logger.info("Analysis completed. Results saved to outputs/ directory.")
+    # Save results to CSV
+    output_dir = config['outputs']['results_dir']
+    cumulative_returns.to_csv(f"{output_dir}/strategy_cumulative_returns.csv")
+    top_contributors.to_csv(f"{output_dir}/top_pca_contributors.csv")
+    logger.info(f"Analysis completed. Results saved to {output_dir}/ directory.")
 
 if __name__ == "__main__":
     main()
