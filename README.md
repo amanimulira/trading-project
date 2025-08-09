@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project analyzes historical S&P 500 stock data to uncover market trends, identify risk factors, and inform asset allocation strategies. Conducted as part of my Master’s in Computer Science at the University of Liverpool, the project demonstrates my ability to perform top-down market research, construct econometric models, and derive actionable insights for multi-asset investment strategies. By leveraging Python-based data analysis and machine learning techniques, I evaluated ~500 stocks over 750 trading days (2014–2017), achieving an 83% project score through rigorous analysis and clear documentation.
+This project analyzes historical S&P 500 stock data to uncover market trends, identify risk factors, and inform asset allocation strategies. The project demonstrates my ability to perform top-down market research, construct econometric models, and derive actionable insights for multi-asset investment strategies. By leveraging Python-based data analysis and machine learning techniques, I evaluated ~500 stocks over 750 trading days (2014–2017), achieving an 83% project score through rigorous analysis and clear documentation.
 
 ## Project Objectives
 
@@ -65,6 +65,3 @@ This project analyzes historical S&P 500 stock data to uncover market trends, id
 
 For questions or collaboration, reach out to me at [amanimulira@gmail.com](mailto:amanimulira@gmail.com) or connect via [GitHub](https://github.com/amanimulira).
 
----
-
-*This project was completed as part of my academic coursework and reflects my passion for macroeconomic research and data-driven market analysis.*
